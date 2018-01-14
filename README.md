@@ -15,9 +15,9 @@ In the process of creating a Plex media center on a Raspberry Pi, I really wante
 * First, if you don't already have an AWS account, [go ahead and get one](https://aws.amazon.com/s3/) (it's free).
 * Once you have an account, don't login with the root account all the time. Be sure to [follow the security recommendations](https://console.aws.amazon.com/iam/home#/home) as a minimum:
   * setup multi-factor authentication for the root account
-  * setup a separate [admin account](https://console.aws.amazon.com/iam/home?region=us-east-1#/users) for ... well ... regular administration.
-  * create an [admin group](https://console.aws.amazon.com/iam/home?region=us-east-1#/groups) and attach the AdministratorAccess policy to it, then make the admin user a member of the admin group.
-* Once you have an admin account, login as admin and [generate an access key](https://console.aws.amazon.com/iam/home?region=us-east-1#/users/admin?section=security_credentials). Download the access key and secret for safe keeping (we'll be using the access key-pair later in this how-to).
+  * setup a separate [admin account](https://console.aws.amazon.com/iam/home#/users) for ... well ... regular administration.
+  * create an [admin group](https://console.aws.amazon.com/iam/home#/groups) and attach the AdministratorAccess policy to it, then make the admin user a member of the admin group.
+* Once you have an admin account, login as admin and [generate an access key](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html?icmpid=docs_iam_console). Download the access key and secret for safe keeping (we'll be using the access key-pair later in this how-to).
 
 #### Install some software: ####
 
@@ -93,6 +93,8 @@ developer@vbox: aws --profile=admin s3api put-bucket-policy --bucket=dxj.media-s
     ]
 }'
 ```
+**Note:** The above policy was generated using the [Policy Generator](http://awspolicygen.s3.amazonaws.com/policygen.html).
+
 Next, generate an access key for your S3 bucket user:
 
 ```json
@@ -176,8 +178,8 @@ developer@vbox: sudo umount /home/developer/s3-drive/media-server
 developer@vbox: sudo mkdir -p /data/s3drive/
 developer@vbox: sudo mv /home/developer/s3-drive/media-server /data/s3drive/media-server-backup
 developer@vbox: sudo chown root:root /data/s3drive/media-server-backup
-developer@vbox:~$ sudo mv ~/.passwd-s3fs /etc/passwd-s3fs
-developer@vbox:~$ sudo chown root:root /etc/passwd-s3fs
+developer@vbox: sudo mv ~/.passwd-s3fs /etc/passwd-s3fs
+developer@vbox: sudo chown root:root /etc/passwd-s3fs
 
 # let's mount it and test it
 developer@vbox: sudo s3fs  -o allow_other,uid=1000,gid=1000,umask=027  dxj.media-server /data/s3drive/media-server-backup
@@ -193,6 +195,13 @@ Reboot your Linux host to test that the mount persists.
 The following command bypasses the fuze file system and updates the S3 bucket direct:
 
 ```bash
+# two-way sync
 developer@vbox: aws --profile=media-server-user s3 sync /home/developer/media-server s3://dxj.media-server --delete
+developer@vbox: aws --profile=media-server-user s3 sync s3://dxj.media-server /home/developer/media-server --delete
+
+# known bug where s3 sync command does not remove empty folders.
+developer@vbox: find /home/developer/media-server -type d -empty | xargs rm -rf
+developer@vbox: find /data/s3drive/media-server-backup -type d -empty | xargs rm -rf
 ```
+
 Which begs the question: If all you want is a backup of your media drive, use the AWS CLI instead of a drive mount? :)
