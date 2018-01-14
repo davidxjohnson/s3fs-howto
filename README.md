@@ -1,5 +1,5 @@
 # s3fs-howto
-### Cheat-sheet on how to mount an S3 bucket to a Linux host (securely)
+### Cheat-sheet on how to mount a S3 bucket to a Linux host (securely)
 
 #### What's covered in this how-to: ####
 
@@ -9,14 +9,14 @@
 
 #### Why? ####
 
-In the process of creating a Plex media center on a Raspberry Pi, I really wanted to have a way to periodically backup the local media store to the cloud. A S3 bucket seems ideal for a backup because it's inexpensive, secure, highly available and very durable. Wouldn't it be great if you could simply mount an S3 bucket to the media server and rsync to it?
+In the process of creating a Plex media center on a Raspberry Pi, I really wanted to have a way to periodically backup the local media store to the cloud. A S3 bucket seems ideal for a backup because it's inexpensive, secure, highly available and very durable. Wouldn't it be great if you could simply mount an S3 bucket to the media server and rsync to it? (Well ... maybe.)
 
 #### AWS Security setup: ####
 * First, if you don't already have an AWS account, [go ahead and get one](https://aws.amazon.com/s3/) (it's free).
 * Once you have an account, don't login with the root account all the time. Be sure to [follow the security recommendations](https://console.aws.amazon.com/iam/home#/home) as a minimum:
- * setup multi-factor authentication for the root account
- * setup a separate [admin account](https://console.aws.amazon.com/iam/home?region=us-east-1#/users) for ... well ... regular administration.
- * create an [admin group](https://console.aws.amazon.com/iam/home?region=us-east-1#/groups) and attach the AdministratorAccess policy to it, then make the admin user a member of the admin group.
+  * setup multi-factor authentication for the root account
+  * setup a separate [admin account](https://console.aws.amazon.com/iam/home?region=us-east-1#/users) for ... well ... regular administration.
+  * create an [admin group](https://console.aws.amazon.com/iam/home?region=us-east-1#/groups) and attach the AdministratorAccess policy to it, then make the admin user a member of the admin group.
 * Once you have an admin account, login as admin and [generate an access key](https://console.aws.amazon.com/iam/home?region=us-east-1#/users/admin?section=security_credentials). Download the access key and secret for safe keeping (we'll be using the access key-pair later in this how-to).
 
 #### Install some software: ####
@@ -166,7 +166,7 @@ Check the [S3 console](https://s3.console.aws.amazon.com/s3) to verify that the 
 
 While there, create a new directory using the S3 console. Check the drive mount in your Linux host to see if it shows there. It should be instantaneous.
 
-**Note:** The umask, gid and uid options used with the mount command are a work-around where files and folders are created in teh S3 bucket using other tools or the S3 console. Without these options, the files wouldn't be accessible by the current user.
+**Note:** The umask, gid and uid options used with the mount command are a work-around where files and folders are created in the S3 bucket using other tools or the S3 console. Without these options, the files wouldn't be accessible by the current user.
 
 #### Configuring the drive to mount on start-up
 ```bash
@@ -180,7 +180,7 @@ developer@vbox:~$ sudo mv ~/.passwd-s3fs /etc/passwd-s3fs
 developer@vbox:~$ sudo chown root:root /etc/passwd-s3fs
 
 # let's mount it and test it
-developer@vbox: sudo s3fs  -o allow_other -o uid=1000,gid=1000,umask=027  dxj.media-server /data/s3drive/media-server-backup
+developer@vbox: sudo s3fs  -o allow_other,uid=1000,gid=1000,umask=027  dxj.media-server /data/s3drive/media-server-backup
 eveloper@vbox: rsync -rz --delete ./media-server/* /data/s3drive/media-server-backup/*
 
 # mount on start-up
@@ -191,6 +191,8 @@ Reboot your Linux host to test that the mount persists.
 #### An alternative to rsync: ####
 
 The following command bypasses the fuze file system and updates the S3 bucket direct:
-`developer@vbox: aws --profile=media-server-user s3 sync /home/developer/media-server s3://dxj.media-server --delete`
 
-Which begs the question: If all you want is a backup of your media drive, use the AWS CLI instead of a drive mount. :)
+```bash
+developer@vbox: aws --profile=media-server-user s3 sync /home/developer/media-server s3://dxj.media-server --delete
+```
+Which begs the question: If all you want is a backup of your media drive, use the AWS CLI instead of a drive mount? :)
