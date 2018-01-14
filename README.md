@@ -181,7 +181,7 @@ developer@vbox:~$ sudo chown root:root /etc/passwd-s3fs
 
 # let's mount it and test it
 developer@vbox: sudo s3fs  -o allow_other,uid=1000,gid=1000,umask=027  dxj.media-server /data/s3drive/media-server-backup
-eveloper@vbox: rsync -rz --delete ./media-server/* /data/s3drive/media-server-backup/*
+developer@vbox: rsync -rz --delete ./media-server/* /data/s3drive/media-server-backup/*
 
 # mount on start-up
 developer@vbox: echo 'dxj.media-server /data/s3drive/media-server-backup fuse.s3fs _netdev,allow_other,uid=1000,gid=1000,umask=027 0 0' | sudo tee --append /etc/fstab
