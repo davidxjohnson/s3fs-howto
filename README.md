@@ -175,7 +175,6 @@ developer@vbox: cd ~
 developer@vbox: sudo umount /home/developer/s3-drive/media-server
 developer@vbox: sudo mkdir -p /data/s3drive/
 developer@vbox: sudo mv /home/developer/s3-drive/media-server /data/s3drive/media-server-backup
-developer@vbox: sudo chown root:root /data/s3drive/media-server-backup
 developer@vbox:~$ sudo mv ~/.passwd-s3fs /etc/passwd-s3fs
 developer@vbox:~$ sudo chown root:root /etc/passwd-s3fs
 
