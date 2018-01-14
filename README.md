@@ -132,7 +132,7 @@ developer@vbox: mkdir -p ~/s3-drive/media-center
 developer@vbox: sudo sed -i s/\#user_allow_other/user_allow_other/g /etc/fuse.conf
 
 # mount the S3 bucket with default permissions of 750 and owned by 1000:1000
-developer@vbox: s3fs -o allow_other -o uid=1000,gid=1000,umask=027  dxj.media-server ~/s3-drive/media-server
+developer@vbox: s3fs -o allow_other,uid=1000,gid=1000,umask=027  dxj.media-server ~/s3-drive/media-server
 
 # is it mounted?
 developer@vbox: mount | grep s3fs
@@ -175,6 +175,7 @@ developer@vbox: cd ~
 developer@vbox: sudo umount /home/developer/s3-drive/media-server
 developer@vbox: sudo mkdir -p /data/s3drive/
 developer@vbox: sudo mv /home/developer/s3-drive/media-server /data/s3drive/media-server-backup
+developer@vbox: sudo chown root:root /data/s3drive/media-server-backup
 developer@vbox:~$ sudo mv ~/.passwd-s3fs /etc/passwd-s3fs
 developer@vbox:~$ sudo chown root:root /etc/passwd-s3fs
 
@@ -183,7 +184,7 @@ developer@vbox: sudo s3fs  -o allow_other,uid=1000,gid=1000,umask=027  dxj.media
 eveloper@vbox: rsync -rz --delete ./media-server/* /data/s3drive/media-server-backup/*
 
 # mount on start-up
-developer@vbox: echo 'dxj.media-server /data/s3drive/media-server-backup fuse.s3fs _netdev,uid=1000,gid=1000,umask=027 0 0' | sudo tee --append /etc/fstab
+developer@vbox: echo 'dxj.media-server /data/s3drive/media-server-backup fuse.s3fs _netdev,allow_other,uid=1000,gid=1000,umask=027 0 0' | sudo tee --append /etc/fstab
 ```
 Reboot your Linux host to test that the mount persists.
 
