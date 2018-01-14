@@ -6,6 +6,7 @@
 * Use of S3FS fuze-based file system.
 * Use of AWS CLI to create an S3 bucket, access-user and permissions.
 * Creating a mount and enable it on start-up.
+* Sync local data to the S3 mount (as a backup)
 
 #### Why? ####
 
