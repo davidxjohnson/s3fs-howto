@@ -18,14 +18,14 @@ In the process of creating a Plex media center on a Raspberry Pi, I really wante
   * setup multi-factor authentication for the root account
   * setup a separate [admin account](https://console.aws.amazon.com/iam/home#/users) for ... well ... regular administration.
   * create an [admin group](https://console.aws.amazon.com/iam/home#/groups) and attach the AdministratorAccess policy to it, then make the admin user a member of the admin group.
-* Once you have an admin account, login as admin and [generate an access key](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html?icmpid=docs_iam_console). Download the access key and secret for safe keeping (we'll be using the access key-pair later in this how-to).
+* Once you have an admin account, login as admin and [generate an access key](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html?icmpid=docs_iam_console). Download the access key and secret for safe keeping (we'll be using the AccessKeyId/SecretAccessKey pair later in this how-to).
 
 #### Install some software: ####
 
 * Install the [S3FS fuze-based file system](https://github.com/s3fs-fuse/s3fs-fuse).
 * Install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/installing.html).
 
-#### Use the AWS CLI to configure your S3 bucket, user and access policy ####
+#### Use the AWS CLI to create your S3 bucket and configure the user and access policy ####
 
 Let's store your admin credentials for use in the CLI (use the AccessKeyId/SecretAccessKey pair that you generated previously for the admin user).
 
@@ -121,6 +121,11 @@ chmod 600 ~/.passwd-s3fs
 
 # save the credentials for the AWS CLI
 developer@vbox: aws configure --profile=media-server-user
+
+AWS Access Key ID [None]: AKIAJ22SJDBHJ22DBHJQ
+AWS Secret Access Key [None]: 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
+Default region name [None]: us-east-1
+Default output format [None]:
 ```
 
 #### Mount the S3 bucket using the S3FS fuze-based file system: ####
@@ -135,12 +140,12 @@ developer@vbox: mkdir -p ~/s3-drive/media-center
 developer@vbox: sudo sed -i s/\#user_allow_other/user_allow_other/g /etc/fuse.conf
 
 # mount the S3 bucket with default permissions of 750 and owned by 1000:1000
-developer@vbox: s3fs -o allow_other,uid=1000,gid=1000,umask=027  dxj.media-server ~/s3-drive/media-server
+developer@vbox: s3fs -o allow_other,uid=1000,gid=1000,umask=027  dxj.media-server /home/developer/media-server
 
 # is it mounted?
 developer@vbox: mount | grep s3fs
 
-s3fs on /home/developer/s3-drive/media-server type fuse.s3fs (rw,nosuid,nodev,relatime,user_id=1000,group_id=1000)
+s3fs on /home/developer/media-server type fuse.s3fs (rw,nosuid,nodev,relatime,user_id=1000,group_id=1000)
 
 # copy files to the drive
 developer@vbox: cd ~
@@ -175,16 +180,14 @@ While there, create a new directory using the S3 console. Check the drive mount 
 ```bash
 # move our experiment to a little more permanent place
 developer@vbox: cd ~
-developer@vbox: sudo umount /home/developer/s3-drive/media-server
-developer@vbox: sudo mkdir -p /data/s3drive/
-developer@vbox: sudo mv /home/developer/s3-drive/media-server /data/s3drive/media-server-backup
-developer@vbox: sudo chown root:root /data/s3drive/media-server-backup
+developer@vbox: sudo umount /home/developer/media-server
+developer@vbox: sudo mkdir -p /data/s3drive/media-server-backup
 developer@vbox: sudo mv ~/.passwd-s3fs /etc/passwd-s3fs
 developer@vbox: sudo chown root:root /etc/passwd-s3fs
 
 # let's mount it and test it
 developer@vbox: sudo s3fs  -o allow_other,uid=1000,gid=1000,umask=027  dxj.media-server /data/s3drive/media-server-backup
-developer@vbox: rsync -rz --delete ./media-server/* /data/s3drive/media-server-backup/*
+developer@vbox: rsync -rz --delete /home/developer/media-server/* /data/s3drive/media-server-backup/*
 
 # mount on start-up
 developer@vbox: echo 'dxj.media-server /data/s3drive/media-server-backup fuse.s3fs _netdev,allow_other,uid=1000,gid=1000,umask=027 0 0' | sudo tee --append /etc/fstab
@@ -205,4 +208,4 @@ developer@vbox: find /home/developer/media-server -type d -empty | xargs rm -rf
 developer@vbox: find /data/s3drive/media-server-backup -type d -empty | xargs rm -rf
 ```
 
-Which begs the question: If all you want is a backup of your media drive, use the AWS CLI instead of a drive mount? :)
+Which begs the question: If all you want is a backup of your media drive, why not use the AWS CLI instead of a drive mount? :)
